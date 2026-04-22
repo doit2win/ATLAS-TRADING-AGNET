@@ -6,6 +6,7 @@ import cors from "cors";
 import { setLogCallback } from "./src/lib/utils/logger.js";
 import { agentSwarm } from "./src/lib/agents/swarm.js";
 import { ecomSwarm } from "./src/lib/agents/ecom-swarm.js";
+import { runMarketingBlast } from "./src/lib/agents/marketing-agent.js";
 import { registerAgentIdentity } from "./src/lib/agents/onchain.js";
 import { initDb, query } from "./src/lib/db.js";
 
@@ -343,10 +344,62 @@ ecomRouter.get("/swarm/status", (_req, res) => {
       { name: "Copy",        model: "Llama-3.1-8B",      role: "Content Generation",  status: "Active", accuracy: "91.5%" },
       { name: "Pricer",      model: "Llama-3.1-8B",      role: "Dynamic Pricing",     status: "Active", accuracy: "93.7%" },
       { name: "Nexus",       model: "Logic Engine",      role: "Order Fulfillment",   status: "Active", accuracy: "99.1%" },
+      { name: "Marketing",   model: "Llama-3.1-8B",      role: "Ad Copy & Campaigns", status: "Active", accuracy: "90.3%" },
     ],
     channels: ["Online Store", "Amazon", "TikTok Shop", "Instagram Shop", "eBay"],
     revenueGoal: 20000,
   });
+});
+
+// Marketing automation — generate campaigns for top products
+ecomRouter.post("/marketing/blast", async (_req, res) => {
+  try {
+    const { rows: products } = await query(
+      "SELECT * FROM products WHERE status = 'active' ORDER BY ai_score DESC LIMIT 5"
+    );
+    const campaigns = await runMarketingBlast(products);
+    addLogToUI(`[Marketing] 📣 Marketing blast complete — ${campaigns.length} campaigns generated`);
+    res.json({ success: true, campaigns });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Marketing campaign for single product
+ecomRouter.post("/marketing/campaign", async (req, res) => {
+  const { productName, price, category, margin } = req.body;
+  try {
+    const { generateCampaign } = await import("./src/lib/agents/marketing-agent.js");
+    const campaign = await generateCampaign(productName, price || 29.99, category || 'General', margin || 65);
+    res.json({ success: true, campaign });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Stats summary for e-com
+ecomRouter.get("/stats", async (_req, res) => {
+  try {
+    const { rows: prodRows } = await query("SELECT COUNT(*) as count, AVG(margin_pct) as avg_margin, AVG(ai_score) as avg_score FROM products");
+    const { rows: ordRows  } = await query("SELECT COUNT(*) as count, SUM(total_amount) as total_rev, SUM(profit) as total_profit FROM orders");
+    const { rows: todayRows } = await query("SELECT SUM(total_amount) as today_rev FROM orders WHERE created_at > NOW() - INTERVAL '24 hours'");
+    res.json({
+      success: true,
+      products: {
+        count: parseInt(prodRows[0].count),
+        avgMargin: parseFloat(parseFloat(prodRows[0].avg_margin || 0).toFixed(1)),
+        avgScore: parseFloat(parseFloat(prodRows[0].avg_score || 0).toFixed(1)),
+      },
+      orders: {
+        count: parseInt(ordRows[0].count),
+        totalRevenue: parseFloat(parseFloat(ordRows[0].total_rev || 0).toFixed(2)),
+        totalProfit: parseFloat(parseFloat(ordRows[0].total_profit || 0).toFixed(2)),
+        todayRevenue: parseFloat(parseFloat(todayRows[0].today_rev || 0).toFixed(2)),
+      },
+    });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 app.use("/api/ecom", ecomRouter);

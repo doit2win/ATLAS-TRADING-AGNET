@@ -8,6 +8,7 @@ import ShopDashboard from './pages/ShopDashboard';
 import Products from './pages/Products';
 import Orders from './pages/Orders';
 import Revenue from './pages/Revenue';
+import EcomMatrix from './pages/EcomMatrix';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="shop/products" element={<Products />} />
           <Route path="shop/orders" element={<Orders />} />
           <Route path="shop/revenue" element={<Revenue />} />
+          <Route path="shop/matrix" element={<EcomMatrix />} />
         </Route>
       </Routes>
     </BrowserRouter>

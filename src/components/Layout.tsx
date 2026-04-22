@@ -2,7 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Header from './Header';
 import Ticker from './Ticker';
 import PriceTicker from './PriceTicker';
-import { Bot, Trophy, ShoppingCart, TrendingUp, Package } from 'lucide-react';
+import { Bot, Trophy, ShoppingCart, TrendingUp, Package, Cpu } from 'lucide-react';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -59,10 +59,19 @@ export default function Layout() {
         {/* Floating Revenue Button */}
         <button
           onClick={() => navigate('/shop/revenue')}
-          className="fixed left-0 top-[82%] -translate-y-1/2 bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] border border-cyan-400/30 group"
+          className="fixed left-0 top-[78%] -translate-y-1/2 bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] border border-cyan-400/30 group"
         >
           <TrendingUp className="w-4 h-4 group-hover:scale-110 transition-transform" />
           <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Revenue</span>
+        </button>
+
+        {/* Floating E-Com Matrix Button */}
+        <button
+          onClick={() => navigate('/shop/matrix')}
+          className="fixed left-0 top-[92%] -translate-y-1/2 bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-indigo-400/30 group"
+        >
+          <Cpu className="w-4 h-4 group-hover:scale-110 transition-transform" />
+          <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Matrix</span>
         </button>
 
         <Outlet />
