@@ -112,38 +112,74 @@ const scoutAgent = async (state: EcomState): Promise<Partial<EcomState>> => {
   globalAddLog("[Scout-Claude] 🔭 Scanning market for high-margin dropshipping opportunities...");
   await delay(300);
 
-  const trending = [
-    "Electronics & Gadgets", "Beauty & Skincare", "Home & Decor",
-    "Health & Wellness", "Sports & Fitness", "Pets"
+  // Do It 2 Win niche categories
+  const niches = [
+    "Longevity & Anti-Aging", "Biohacking Devices", "Nootropics & Brain Performance",
+    "Performance & Recovery", "Alternative Medicine", "Health Technology"
   ];
-  const category = state.targetCategory || trending[Math.floor(Math.random() * trending.length)];
+  const category = state.targetCategory || niches[Math.floor(Math.random() * niches.length)];
 
   try {
     const response = await callClaude(
-      "You are a top e-commerce product scout. Always respond with valid JSON only.",
-      `Find 4 trending, high-profit dropshipping products in the "${category}" category.
-       Focus on products with 60-75% gross margin, trending on TikTok/Instagram, low competition.
+      "You are an elite e-commerce product scout specializing in biohacking, longevity, alternative medicine, and human performance optimization. Always respond with valid JSON only.",
+      `Scout 4 high-converting dropshipping products for the Do It 2 Win brand in the "${category}" niche.
+       Brand focus: biohacking, peptides, anti-aging, longevity, nootropics, health technology, alternative medicine.
+       Target customer: health-conscious optimizers, biohackers, athletes, longevity enthusiasts aged 28-55.
+       Find products with 70-80% gross margin, strong scientific backing or trending in biohacking communities.
        Respond ONLY with a JSON array:
        [{"name":"...","category":"${category}","niche":"...","estimatedDemand":"High|Medium","competitionLevel":"Low|Medium"}]`
     );
     const parsed = safeParseJSON(response);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      globalAddLog(`[Scout-Claude] ✅ Identified ${parsed.length} hot products in ${category}`);
+      globalAddLog(`[Scout-Claude] ✅ Identified ${parsed.length} high-value products in ${category}`);
       globalAddLog(`[Scout-Claude] 🎯 Top pick: "${parsed[0].name}" — Demand: ${parsed[0].estimatedDemand}`);
       return { sourceProducts: parsed, targetCategory: category };
     }
   } catch (e: any) {
-    globalAddLog(`[Scout-Claude] ⚠️ API limited — using curated trend database`);
+    globalAddLog(`[Scout-Claude] ⚠️ API limited — using Di2W curated product database`);
   }
 
-  // Fallback: curated trending products
-  const fallback: SourcedProduct[] = [
-    { name: "AI-Powered LED Desk Lamp", category, niche: "Smart Home", estimatedDemand: "High", competitionLevel: "Low" },
-    { name: "Hydrogel Under-Eye Patches", category, niche: "K-Beauty", estimatedDemand: "High", competitionLevel: "Low" },
-    { name: "Portable Mini Humidifier", category, niche: "Wellness", estimatedDemand: "High", competitionLevel: "Medium" },
-    { name: "Magnetic Phone Wallet", category, niche: "Accessories", estimatedDemand: "High", competitionLevel: "Low" },
-  ];
-  globalAddLog(`[Scout-Claude] 📦 Loaded ${fallback.length} curated trend picks for ${category}`);
+  // Fallback: Do It 2 Win curated biohack products
+  const fallbackMap: Record<string, SourcedProduct[]> = {
+    "Longevity & Anti-Aging": [
+      { name: "NMN + Resveratrol Bundle Kit", category, niche: "Cellular Longevity", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Rapamycin Alternative mTOR Stack", category, niche: "Longevity Protocols", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Senolytics Fisetin + Dasatinib Analog", category, niche: "Cellular Renewal", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Telomere Support Complex TA-65 Mimetic", category, niche: "Epigenetic Age", estimatedDemand: "Medium", competitionLevel: "Low" },
+    ],
+    "Biohacking Devices": [
+      { name: "Wearable Photobiomodulation Helmet", category, niche: "Brain Biohacking", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Cold Therapy Plunge Tub Portable", category, niche: "Cold Exposure Protocol", estimatedDemand: "High", competitionLevel: "Medium" },
+      { name: "LLLT Laser Cap Hair & Scalp", category, niche: "Phototherapy", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Neurofeedback EEG Headband", category, niche: "Brain Training", estimatedDemand: "Medium", competitionLevel: "Low" },
+    ],
+    "Nootropics & Brain Performance": [
+      { name: "Microdosing Support Stack Adaptogen Formula", category, niche: "Cognitive Enhancement", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Peptide GHK-Cu Copper Tripeptide Serum", category, niche: "Neuroregeneration", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Racetam + Choline Nootropic Protocol", category, niche: "Memory & Focus", estimatedDemand: "Medium", competitionLevel: "Low" },
+      { name: "Cerebrolysin Mimetic Oral Complex", category, niche: "Neuroprotection", estimatedDemand: "Medium", competitionLevel: "Low" },
+    ],
+    "Performance & Recovery": [
+      { name: "BPC-157 Capsules Gut-Joint Protocol", category, niche: "Peptide Recovery", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Mitochondria Accelerator PQQ + CoQ10", category, niche: "Cellular Energy", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Red Light + PEMF Recovery Wearable Wrap", category, niche: "Recovery Tech", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Hyperbaric Oxygen Tent Portable 1.3 ATA", category, niche: "Oxygen Therapy", estimatedDemand: "Medium", competitionLevel: "Low" },
+    ],
+    "Alternative Medicine": [
+      { name: "Ozone Therapy Ear Insufflation Kit", category, niche: "Ozone Protocols", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Ayurvedic Panchakarma Detox Kit", category, niche: "Traditional Medicine", estimatedDemand: "Medium", competitionLevel: "Low" },
+      { name: "Black Seed Oil Thymoquinone Extract 5%", category, niche: "Herbal Medicine", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Hydrogen Inhalation Generator 150ml/min", category, niche: "H2 Therapy", estimatedDemand: "Medium", competitionLevel: "Low" },
+    ],
+    "Health Technology": [
+      { name: "AI-Powered Continuous Glucose Monitor Kit", category, niche: "Metabolic Tracking", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Microbiome Test + Probiotic Protocol Kit", category, niche: "Gut Health Tech", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Portable EEG Sleep Optimizer Headband", category, niche: "Sleep Technology", estimatedDemand: "High", competitionLevel: "Low" },
+      { name: "Epigenetic Age Test + Reversal Protocol", category, niche: "Biological Age", estimatedDemand: "Medium", competitionLevel: "Low" },
+    ],
+  };
+  const fallback: SourcedProduct[] = fallbackMap[category] || fallbackMap["Biohacking Devices"];
+  globalAddLog(`[Scout-Claude] 📦 Loaded ${fallback.length} Di2W curated picks for ${category}`);
   return { sourceProducts: fallback, targetCategory: category };
 };
 
@@ -163,8 +199,9 @@ const validatorAgent = async (state: EcomState): Promise<Partial<EcomState>> => 
   try {
     const productList = state.sourceProducts.map(p => p.name).join(", ");
     const response = await callGemini(
-      `You are an e-commerce market analyst. Confirm these dropshipping products are viable: ${productList}.
-       For each product give: costPrice (USD), salePrice (USD), marginPct, supplier name.
+      `You are a market analyst specializing in biohacking, longevity, alternative medicine, and health technology e-commerce. Validate these dropshipping products for the Do It 2 Win brand: ${productList}.
+       These are premium niche products targeting health optimizers and biohackers willing to pay premium prices.
+       For each product provide realistic dropshipping costPrice (USD), premium salePrice reflecting 70-80% margin, marginPct, and supplier name (use realistic biohack/supplement supplier names).
        Respond ONLY with valid JSON array:
        [{"name":"...","costPrice":X,"salePrice":Y,"marginPct":Z,"supplier":"..."}]`
     );
@@ -213,8 +250,8 @@ const copyAgent = async (state: EcomState): Promise<Partial<EcomState>> => {
   for (const prod of products) {
     try {
       const completion = await getGroq().invoke([
-        { role: "system", content: "You are a conversion-focused e-commerce copywriter. Be concise and persuasive. No JSON, just the description then a | then the ad copy." },
-        { role: "user", content: `Write a 25-word product description and a 15-word Facebook ad headline for: "${prod.name}" priced at $${prod.salePrice}. Format: DESCRIPTION | AD_COPY` }
+        { role: "system", content: "You are a conversion-focused copywriter for Do It 2 Win — a premium biohacking and longevity brand. Write scientific yet accessible copy for health optimizers and biohackers. Speak to results: performance, longevity, recovery, cognitive enhancement. No hype — data-backed claims only. Format: DESCRIPTION | AD_COPY" },
+        { role: "user", content: `Write a 30-word product description and a 15-word ad headline for: "${prod.name}" priced at $${prod.salePrice}. Audience: biohackers, longevity enthusiasts, performance athletes aged 28-55. Format: DESCRIPTION | AD_COPY` }
       ]);
       const text: string = completion.content.toString();
       const parts = text.split('|');

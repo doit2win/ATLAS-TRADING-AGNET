@@ -1,4 +1,4 @@
-import { Activity, Clock, Network, LayoutDashboard, History, Bot, ShoppingCart, Package, TrendingUp, BarChart2, Plug } from 'lucide-react';
+import { Activity, Clock, Network, LayoutDashboard, History, Bot, ShoppingCart, Package, TrendingUp, BarChart2, Plug, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -18,6 +18,7 @@ export default function Header() {
   ];
 
   const shopNav = [
+    { name: 'Brand',        path: '/shop/brand',         icon: Zap          },
     { name: 'Shop',         path: '/shop',               icon: ShoppingCart },
     { name: 'Products',     path: '/shop/products',      icon: Package      },
     { name: 'Orders',       path: '/shop/orders',        icon: BarChart2    },
@@ -28,9 +29,12 @@ export default function Header() {
   return (
     <header className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800 bg-[#0B0E14]/90 backdrop-blur-sm z-50 relative">
       <div className="flex items-center gap-5">
-        <Link to="/" className="flex items-center gap-2 text-emerald-400 font-mono group shrink-0">
-          <Activity className="w-4 h-4 animate-pulse group-hover:scale-110 transition-transform" />
-          <span className="font-bold tracking-wider text-[11px]">ATLAS | AI Commerce</span>
+        <Link to="/" className="flex items-center gap-2 font-mono group shrink-0">
+          <Activity className="w-4 h-4 animate-pulse text-amber-400 group-hover:scale-110 transition-transform" />
+          <div className="flex flex-col leading-none">
+            <span className="font-black tracking-widest text-[11px] text-white uppercase">DO IT 2 WIN</span>
+            <span className="text-[7px] text-amber-400/70 tracking-wider uppercase font-medium">Optimize · Perform · Evolve</span>
+          </div>
         </Link>
 
         <div className="flex items-center gap-0.5">

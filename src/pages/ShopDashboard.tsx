@@ -27,11 +27,12 @@ export default function ShopDashboard() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [swarmLogs, setSwarmLogs] = useState<string[]>([
-    `[${new Date().toISOString()}] [System] ATLAS E-Commerce Engine initialized.`,
-    `[${new Date().toISOString()}] [Scout-Claude] Monitoring 6 product categories for opportunities.`,
-    `[${new Date().toISOString()}] [Validator-Gemini] Market validation layer online.`,
-    `[${new Date().toISOString()}] [Pricer-Llama] Dynamic pricing engine standby.`,
-    `[${new Date().toISOString()}] [Nexus] Fulfillment pipeline ready — 5 channels active.`,
+    `[${new Date().toISOString()}] [System] DO IT 2 WIN — Biohacking & Longevity Commerce Engine initialized.`,
+    `[${new Date().toISOString()}] [Scout-Claude] Scanning 6 biohacking niches: Longevity, Devices, Nootropics, Recovery, Alt-Med, Health Tech.`,
+    `[${new Date().toISOString()}] [Validator-Gemini] Market validation layer online — targeting 70-80% margin products.`,
+    `[${new Date().toISOString()}] [Copy-Llama] Brand voice loaded: scientific, empowering, results-driven.`,
+    `[${new Date().toISOString()}] [Pricer-Llama] Premium pricing engine active — biohacker community pricing model.`,
+    `[${new Date().toISOString()}] [Nexus] Fulfillment pipeline ready — 5 channels active. Target: $20K/month.`,
   ]);
   const [activeCategory, setActiveCategory] = useState('');
   const [swarmResult, setSwarmResult] = useState<any>(null);
@@ -112,8 +113,11 @@ export default function ShopDashboard() {
       <div className="flex items-center justify-between bg-slate-900/20 p-2.5 rounded-lg border border-slate-800/50">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <ShoppingCart className="w-4 h-4 text-emerald-400" />
-            <span className="text-[11px] font-bold text-white uppercase tracking-widest">ATLAS Shop — Automated E-Commerce</span>
+            <ShoppingCart className="w-4 h-4 text-amber-400" />
+            <div className="flex flex-col leading-none">
+              <span className="text-[11px] font-black text-white uppercase tracking-widest">DO IT 2 WIN</span>
+              <span className="text-[7px] text-amber-400/70 uppercase tracking-wider">Biohack · Perform · Evolve</span>
+            </div>
           </div>
           <div className="h-4 w-px bg-slate-700" />
           <select
@@ -121,8 +125,8 @@ export default function ShopDashboard() {
             onChange={e => setActiveCategory(e.target.value)}
             className="bg-slate-800/60 border border-slate-700 rounded text-[10px] font-mono text-slate-300 px-2 py-1"
           >
-            <option value="">All Categories</option>
-            {['Electronics', 'Beauty & Skincare', 'Home & Decor', 'Health & Wellness', 'Sports & Fitness', 'Pets'].map(c => (
+            <option value="">All Niches</option>
+            {['Longevity & Anti-Aging', 'Biohacking Devices', 'Nootropics & Brain Performance', 'Performance & Recovery', 'Alternative Medicine', 'Health Technology'].map(c => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>

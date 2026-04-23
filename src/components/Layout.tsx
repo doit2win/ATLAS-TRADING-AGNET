@@ -2,7 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Header from './Header';
 import Ticker from './Ticker';
 import PriceTicker from './PriceTicker';
-import { Bot, Trophy, ShoppingCart, TrendingUp, Package, Cpu, Plug } from 'lucide-react';
+import { Bot, Trophy, ShoppingCart, TrendingUp, Package, Cpu, Plug, Zap } from 'lucide-react';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -34,10 +34,23 @@ export default function Layout() {
           <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Rank</span>
         </button>
 
+        {/* Floating Brand Button */}
+        <button
+          onClick={() => navigate('/shop/brand')}
+          className={`fixed left-0 top-[46%] -translate-y-1/2 font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all border group ${
+            location.pathname === '/shop/brand'
+              ? 'bg-amber-500 hover:bg-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)] border-amber-400/60'
+              : 'bg-amber-700 hover:bg-amber-600 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-amber-400/30'
+          } text-white`}
+        >
+          <Zap className="w-4 h-4 group-hover:scale-110 transition-transform" />
+          <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Brand</span>
+        </button>
+
         {/* Floating Shop Button */}
         <button
           onClick={() => navigate('/shop')}
-          className={`fixed left-0 top-[54%] -translate-y-1/2 font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all border group ${
+          className={`fixed left-0 top-[56%] -translate-y-1/2 font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all border group ${
             isShop
               ? 'bg-purple-500 hover:bg-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.5)] border-purple-400/60'
               : 'bg-purple-700 hover:bg-purple-600 shadow-[0_0_20px_rgba(168,85,247,0.3)] border-purple-400/30'

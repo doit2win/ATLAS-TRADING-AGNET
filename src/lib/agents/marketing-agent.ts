@@ -50,19 +50,19 @@ export const generateCampaign = async (
     const completion = await getGroq().invoke([
       {
         role: "system",
-        content: "You are an expert e-commerce marketer. Create short, punchy marketing copy. Respond as JSON only."
+        content: "You are the chief marketing officer of Do It 2 Win — a premium biohacking, longevity, and human performance brand. Brand voice: scientific, empowering, cutting-edge, results-driven. Target audience: biohackers, longevity enthusiasts, performance athletes, and health optimizers aged 28-55. Reference science and research when relevant. Never use generic 'amazing deal' language — use specific benefits like 'boosts NAD+', 'activates autophagy', 'optimizes HRV'. Respond as JSON only."
       },
       {
         role: "user",
-        content: `Create a marketing campaign for: "${productName}" priced at $${price} in ${category} category.
+        content: `Create a multi-channel marketing campaign for Do It 2 Win product: "${productName}" priced at $${price} in the ${category} category.
         Respond ONLY with JSON:
         {
-          "headline": "...(max 10 words)",
-          "adCopy": "...(max 25 words, include emoji)",
-          "emailSubject": "...(max 8 words)",
-          "emailBody": "...(max 40 words)",
-          "tiktokCaption": "...(max 20 words with hashtags)",
-          "targetAudience": "...(2-3 word description)"
+          "headline": "...(max 10 words, science-backed benefit-focused)",
+          "adCopy": "...(max 25 words, include 1-2 relevant emojis, cite a specific benefit or mechanism)",
+          "emailSubject": "...(max 8 words, curiosity + benefit)",
+          "emailBody": "...(max 45 words, reference research or biohacker community credibility)",
+          "tiktokCaption": "...(max 20 words with biohacking hashtags like #biohacking #longevity #peptides #optimize)",
+          "targetAudience": "...(2-3 word biohacker persona description)"
         }`
       }
     ]);
@@ -87,19 +87,19 @@ export const generateCampaign = async (
     }
   } catch {}
 
-  // Fallback campaign
-  const ctr = parseFloat((2.5 + Math.random() * 3.5).toFixed(1));
-  globalAddLog(`[Marketing-Llama] 📋 Using template campaign for "${productName}" — CTR: ${ctr}%`);
+  // Fallback campaign — Di2W brand voice
+  const ctr = parseFloat((3.2 + Math.random() * 4.8).toFixed(1));
+  globalAddLog(`[Marketing-Llama] 📋 Using Di2W template campaign for "${productName}" — CTR: ${ctr}%`);
   return {
     productName,
     channel,
     estimatedCtr: ctr,
-    targetAudience: 'Online shoppers 18-45',
-    headline: `${productName} — Best Price Guaranteed`,
-    adCopy: `🔥 Grab ${productName} at $${price}! Free shipping on all orders. 30-day money-back guarantee.`,
-    emailSubject: `Your ${productName} is waiting — save now!`,
-    emailBody: `Hi! We picked this just for you: ${productName} at $${price}. Trusted by 10,000+ customers. Shop now with free shipping!`,
-    tiktokCaption: `Wait until you see this ${productName} 😍 #trending #viral #shopping #musthave`,
+    targetAudience: 'Biohackers & Longevity Optimizers',
+    headline: `${productName} — Optimize Your Biology`,
+    adCopy: `⚡ Science-backed ${productName} at $${price}. Join 10,000+ biohackers optimizing their performance. Ships today.`,
+    emailSubject: `Your next biohack: ${productName}`,
+    emailBody: `The research is in. ${productName} is one of the most talked-about protocols in the longevity community right now. Get yours at $${price} with free shipping and our 30-day performance guarantee.`,
+    tiktokCaption: `This ${productName} is changing the biohacking game 🧬⚡ #biohacking #longevity #optimize #doittowin`,
   };
 };
 
