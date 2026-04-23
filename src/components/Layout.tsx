@@ -2,7 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Header from './Header';
 import Ticker from './Ticker';
 import PriceTicker from './PriceTicker';
-import { Bot, Trophy, ShoppingCart, TrendingUp, Package, Cpu } from 'lucide-react';
+import { Bot, Trophy, ShoppingCart, TrendingUp, Package, Cpu, Plug } from 'lucide-react';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -68,10 +68,23 @@ export default function Layout() {
         {/* Floating E-Com Matrix Button */}
         <button
           onClick={() => navigate('/shop/matrix')}
-          className="fixed left-0 top-[92%] -translate-y-1/2 bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-indigo-400/30 group"
+          className="fixed left-0 top-[88%] -translate-y-1/2 bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-indigo-400/30 group"
         >
           <Cpu className="w-4 h-4 group-hover:scale-110 transition-transform" />
           <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Matrix</span>
+        </button>
+
+        {/* Floating Integrations Button */}
+        <button
+          onClick={() => navigate('/shop/integrations')}
+          className={`fixed left-0 top-[96%] -translate-y-1/2 font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all border group ${
+            location.pathname === '/shop/integrations'
+              ? 'bg-rose-500 hover:bg-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.5)] border-rose-400/60'
+              : 'bg-rose-700 hover:bg-rose-600 shadow-[0_0_20px_rgba(244,63,94,0.3)] border-rose-400/30'
+          } text-white`}
+        >
+          <Plug className="w-4 h-4 group-hover:scale-110 transition-transform" />
+          <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Integrations</span>
         </button>
 
         <Outlet />

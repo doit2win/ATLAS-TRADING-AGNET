@@ -7,6 +7,16 @@ import { setLogCallback } from "./src/lib/utils/logger.js";
 import { agentSwarm } from "./src/lib/agents/swarm.js";
 import { ecomSwarm } from "./src/lib/agents/ecom-swarm.js";
 import { runMarketingBlast } from "./src/lib/agents/marketing-agent.js";
+import {
+  testShopifyConnection, bulkSyncProductsToShopify,
+  fetchShopifyOrders, fulfillShopifyOrder, registerShopifyWebhooks,
+  isShopifyConfigured,
+} from "./src/lib/integrations/shopify.js";
+import {
+  routeUnfulfilledOrders, checkFulfillmentStatus, routeOrderToSupplier,
+  getActiveSuppliers, isDSersConfigured, isSpocketConfigured, isCJConfigured,
+  searchDSersProduct, searchSpocketProduct,
+} from "./src/lib/integrations/supplier.js";
 import { registerAgentIdentity } from "./src/lib/agents/onchain.js";
 import { initDb, query } from "./src/lib/db.js";
 
@@ -402,6 +412,228 @@ ecomRouter.get("/stats", async (_req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────
+// SHOPIFY INTEGRATION ROUTES
+// ─────────────────────────────────────────────
+const shopifyRouter = express.Router();
+
+// Connection status
+shopifyRouter.get("/status", async (_req, res) => {
+  const configured = isShopifyConfigured();
+  if (!configured) {
+    return res.json({
+      success: true,
+      connected: false,
+      configured: false,
+      message: "Set SHOPIFY_STORE_URL and SHOPIFY_ACCESS_TOKEN in .env to connect your store",
+    });
+  }
+  const result = await testShopifyConnection();
+  res.json({ success: true, ...result, configured: true });
+});
+
+// Sync all active products to Shopify
+shopifyRouter.post("/sync-products", async (_req, res) => {
+  try {
+    const { rows: products } = await query("SELECT * FROM products WHERE status = 'active'");
+    addLogToUI(`[Shopify] 🔄 Syncing ${products.length} products to Shopify...`);
+    const result = await bulkSyncProductsToShopify(products);
+
+    // Update DB with Shopify IDs
+    for (const r of result.results) {
+      if (r.success && r.shopifyProductId) {
+        const prod = products.find((p: any) => p.name === r.name);
+        if (prod) {
+          await query(
+            `UPDATE products SET shopify_product_id = $1, shopify_handle = $2, shopify_synced_at = NOW() WHERE id = $3`,
+            [r.shopifyProductId, r.shopifyHandle || '', prod.id]
+          ).catch(() => {});
+        }
+      }
+    }
+
+    res.json({ success: true, ...result });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Pull orders from Shopify and save to DB
+shopifyRouter.post("/sync-orders", async (_req, res) => {
+  try {
+    const { success, orders, error, simulated } = await fetchShopifyOrders('any', 50);
+    if (!success) return res.status(500).json({ success: false, error });
+
+    let imported = 0;
+    for (const o of orders) {
+      const item = o.line_items?.[0];
+      if (!item) continue;
+      const total = parseFloat(o.total_price);
+      const profit = total * 0.62;
+      try {
+        await query(
+          `INSERT INTO orders (order_number, product_name, quantity, unit_price, total_amount, profit, status, customer_region, channel, shopify_order_id)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT (order_number) DO NOTHING`,
+          [
+            `SHO-${o.order_number}`, item.title, item.quantity,
+            parseFloat(item.price), total, profit,
+            o.fulfillment_status === 'fulfilled' ? 'delivered' : 'processing',
+            o.shipping_address?.country_code || 'US',
+            'Online Store', o.id,
+          ]
+        );
+        imported++;
+      } catch {}
+    }
+
+    addLogToUI(`[Shopify] ✅ Imported ${imported} orders from Shopify`);
+    res.json({ success: true, fetched: orders.length, imported, simulated });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Mark a Shopify order as fulfilled
+shopifyRouter.post("/fulfill/:shopifyOrderId", async (req, res) => {
+  const { shopifyOrderId } = req.params;
+  const { trackingNumber, trackingCompany } = req.body;
+  const result = await fulfillShopifyOrder(
+    parseInt(shopifyOrderId), trackingNumber || 'SIMULATED123', trackingCompany || 'AliExpress'
+  );
+  res.json({ success: result.success, error: result.error });
+});
+
+// Register Shopify webhooks
+shopifyRouter.post("/register-webhooks", async (req, res) => {
+  const baseUrl = req.body.baseUrl || process.env.SHOPIFY_CALLBACK_URL || 'https://your-app.vercel.app';
+  const result = await registerShopifyWebhooks(baseUrl);
+  res.json({ success: true, ...result });
+});
+
+// Webhook receiver (Shopify → ATLAS)
+shopifyRouter.post("/webhook", express.raw({ type: 'application/json' }), async (req, res) => {
+  const topic = req.headers['x-shopify-topic'] as string;
+  addLogToUI(`[Shopify] 🔔 Webhook received: ${topic}`);
+
+  try {
+    const payload = JSON.parse(req.body.toString());
+    if (topic === 'orders/create' || topic === 'orders/paid') {
+      const item = payload.line_items?.[0];
+      if (item) {
+        const total = parseFloat(payload.total_price);
+        await query(
+          `INSERT INTO orders (order_number, product_name, quantity, unit_price, total_amount, profit, status, customer_region, channel, shopify_order_id, shipping_address)
+           VALUES ($1,$2,$3,$4,$5,$6,'processing',$7,'Online Store',$8,$9) ON CONFLICT (order_number) DO NOTHING`,
+          [
+            `SHO-${payload.order_number}`, item.title, item.quantity,
+            parseFloat(item.price), total, total * 0.62,
+            payload.shipping_address?.country_code || 'US',
+            payload.id,
+            JSON.stringify(payload.shipping_address || {}),
+          ]
+        ).catch(() => {});
+        addLogToUI(`[Shopify] 📦 New order #${payload.order_number}: ${item.title} × ${item.quantity} — $${total}`);
+      }
+    }
+    res.status(200).json({ ok: true });
+  } catch {
+    res.status(200).json({ ok: true }); // Always ACK to Shopify
+  }
+});
+
+app.use("/api/shopify", shopifyRouter);
+
+// ─────────────────────────────────────────────
+// SUPPLIER ROUTING ROUTES
+// ─────────────────────────────────────────────
+const supplierRouter = express.Router();
+
+// Supplier connection status
+supplierRouter.get("/status", (_req, res) => {
+  res.json({
+    success: true,
+    suppliers: {
+      dsers:     { configured: isDSersConfigured(),   name: 'DSers (AliExpress)', note: 'Global, 10-20 day shipping' },
+      spocket:   { configured: isSpocketConfigured(), name: 'Spocket',            note: 'US/EU, 2-7 day shipping'    },
+      cj:        { configured: isCJConfigured(),      name: 'CJ Dropshipping',   note: 'Global, 7-15 day shipping'  },
+      aliexpress:{ configured: false,                 name: 'AliExpress Direct', note: 'Fallback / simulation'      },
+    },
+    activeSuppliers: getActiveSuppliers(),
+  });
+});
+
+// Search for a product across suppliers
+supplierRouter.get("/search", async (req, res) => {
+  const query_str = req.query.q as string || '';
+  try {
+    const [dsersResults, spocketResults] = await Promise.all([
+      searchDSersProduct(query_str),
+      searchSpocketProduct(query_str),
+    ]);
+    res.json({ success: true, dsers: dsersResults, spocket: spocketResults });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Route a single order to the best supplier
+supplierRouter.post("/route-order", async (req, res) => {
+  const { orderId, productName, costPrice, quantity, customerRegion } = req.body;
+  try {
+    const result = await routeOrderToSupplier({ productName, costPrice, quantity, customerRegion });
+    if (result.success && orderId) {
+      await query(
+        `UPDATE orders SET supplier_order_id=$1, supplier=$2, estimated_delivery=$3, status='processing' WHERE id=$4`,
+        [result.supplierOrderId, result.supplier, result.estimatedDelivery, orderId]
+      ).catch(() => {});
+    }
+    addLogToUI(`[Supplier] ${result.success ? '✅' : '❌'} Order ${orderId} → ${result.supplier?.toUpperCase()} (${result.supplierOrderId})`);
+    res.json({ success: true, result });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Batch route all unfulfilled orders
+supplierRouter.post("/route-all", async (_req, res) => {
+  try {
+    const { rows: unfulfilled } = await query(
+      `SELECT * FROM orders WHERE (status = 'processing' OR status = 'pending') AND supplier_order_id IS NULL ORDER BY created_at ASC LIMIT 20`
+    );
+    if (!unfulfilled.length) return res.json({ success: true, message: 'No unfulfilled orders to route', routed: 0, failed: 0, results: [] });
+
+    const { routed, failed, results } = await routeUnfulfilledOrders(unfulfilled);
+
+    // Update DB with routing results
+    for (const r of results) {
+      if (r.success && r.orderId) {
+        await query(
+          `UPDATE orders SET supplier_order_id=$1, supplier=$2, estimated_delivery=$3 WHERE id=$4`,
+          [r.supplierOrderId, r.supplier, r.estimatedDelivery, r.orderId]
+        ).catch(() => {});
+      }
+    }
+
+    res.json({ success: true, routed, failed, results });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Check fulfillment status for a supplier order
+supplierRouter.get("/fulfillment/:supplier/:supplierOrderId", async (req, res) => {
+  const { supplier, supplierOrderId } = req.params;
+  const status = await checkFulfillmentStatus(supplier as any, supplierOrderId);
+  if (status.trackingNumber) {
+    await query(
+      `UPDATE orders SET tracking_number=$1, tracking_company=$2, status=$3 WHERE supplier_order_id=$4`,
+      [status.trackingNumber, status.trackingCompany, status.status === 'delivered' ? 'delivered' : 'shipped', supplierOrderId]
+    ).catch(() => {});
+  }
+  res.json({ success: true, status });
+});
+
+app.use("/api/supplier", supplierRouter);
 app.use("/api/ecom", ecomRouter);
 app.use("/api", apiRouter);
 

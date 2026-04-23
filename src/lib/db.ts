@@ -111,6 +111,11 @@ export const initDb = async () => {
         status VARCHAR(20) DEFAULT 'active',
         ai_score DECIMAL(5,2),
         sourced_by VARCHAR(50) DEFAULT 'Scout-Claude',
+        shopify_product_id BIGINT,
+        shopify_handle VARCHAR(200),
+        shopify_synced_at TIMESTAMPTZ,
+        supplier_product_id VARCHAR(100),
+        supplier_source VARCHAR(20) DEFAULT 'dsers',
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -129,9 +134,35 @@ export const initDb = async () => {
         channel VARCHAR(50) DEFAULT 'Online Store',
         profit DECIMAL(10,2),
         fulfillment_agent VARCHAR(50) DEFAULT 'Nexus',
+        shopify_order_id BIGINT,
+        supplier_order_id VARCHAR(100),
+        supplier VARCHAR(20) DEFAULT 'dsers',
+        tracking_number VARCHAR(100),
+        tracking_company VARCHAR(100),
+        estimated_delivery VARCHAR(50),
+        shipping_address JSONB,
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Add new columns to existing tables if they don't exist (safe migration)
+    const migrations = [
+      `ALTER TABLE products ADD COLUMN IF NOT EXISTS shopify_product_id BIGINT`,
+      `ALTER TABLE products ADD COLUMN IF NOT EXISTS shopify_handle VARCHAR(200)`,
+      `ALTER TABLE products ADD COLUMN IF NOT EXISTS shopify_synced_at TIMESTAMPTZ`,
+      `ALTER TABLE products ADD COLUMN IF NOT EXISTS supplier_product_id VARCHAR(100)`,
+      `ALTER TABLE products ADD COLUMN IF NOT EXISTS supplier_source VARCHAR(20) DEFAULT 'dsers'`,
+      `ALTER TABLE orders   ADD COLUMN IF NOT EXISTS shopify_order_id BIGINT`,
+      `ALTER TABLE orders   ADD COLUMN IF NOT EXISTS supplier_order_id VARCHAR(100)`,
+      `ALTER TABLE orders   ADD COLUMN IF NOT EXISTS supplier VARCHAR(20) DEFAULT 'dsers'`,
+      `ALTER TABLE orders   ADD COLUMN IF NOT EXISTS tracking_number VARCHAR(100)`,
+      `ALTER TABLE orders   ADD COLUMN IF NOT EXISTS tracking_company VARCHAR(100)`,
+      `ALTER TABLE orders   ADD COLUMN IF NOT EXISTS estimated_delivery VARCHAR(50)`,
+      `ALTER TABLE orders   ADD COLUMN IF NOT EXISTS shipping_address JSONB`,
+    ];
+    for (const sql of migrations) {
+      try { await query(sql); } catch {}
+    }
 
     // Seed products if empty
     const { rows: prodRows } = await query('SELECT COUNT(*) FROM products');

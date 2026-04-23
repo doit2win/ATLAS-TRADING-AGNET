@@ -1,4 +1,4 @@
-import { Activity, Clock, Network, LayoutDashboard, History, Bot, ShoppingCart, Package, TrendingUp, BarChart2 } from 'lucide-react';
+import { Activity, Clock, Network, LayoutDashboard, History, Bot, ShoppingCart, Package, TrendingUp, BarChart2, Plug } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -18,10 +18,11 @@ export default function Header() {
   ];
 
   const shopNav = [
-    { name: 'Shop',     path: '/shop',          icon: ShoppingCart },
-    { name: 'Products', path: '/shop/products', icon: Package      },
-    { name: 'Orders',   path: '/shop/orders',   icon: BarChart2    },
-    { name: 'Revenue',  path: '/shop/revenue',  icon: TrendingUp   },
+    { name: 'Shop',         path: '/shop',               icon: ShoppingCart },
+    { name: 'Products',     path: '/shop/products',      icon: Package      },
+    { name: 'Orders',       path: '/shop/orders',        icon: BarChart2    },
+    { name: 'Revenue',      path: '/shop/revenue',       icon: TrendingUp   },
+    { name: 'Integrations', path: '/shop/integrations',  icon: Plug         },
   ];
 
   return (
