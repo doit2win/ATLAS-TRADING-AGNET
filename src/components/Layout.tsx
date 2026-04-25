@@ -2,7 +2,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Header from './Header';
 import Ticker from './Ticker';
 import PriceTicker from './PriceTicker';
-import { Bot, Trophy, ShoppingCart, TrendingUp, Package, Cpu, Plug, Zap } from 'lucide-react';
+import { Bot, Trophy, ShoppingCart, TrendingUp, Package, Cpu, Plug, Zap, Sparkles } from 'lucide-react';
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -78,10 +78,36 @@ export default function Layout() {
           <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Revenue</span>
         </button>
 
+        {/* Floating AutoPilot Button */}
+        <button
+          onClick={() => navigate('/shop/autopilot')}
+          className={`fixed left-0 top-[78%] -translate-y-1/2 font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all border group ${
+            location.pathname === '/shop/autopilot'
+              ? 'bg-amber-500 hover:bg-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)] border-amber-400/60'
+              : 'bg-amber-700 hover:bg-amber-600 shadow-[0_0_20px_rgba(245,158,11,0.3)] border-amber-400/30'
+          } text-white`}
+        >
+          <Bot className="w-4 h-4 group-hover:scale-110 transition-transform" />
+          <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Pilot</span>
+        </button>
+
+        {/* Floating Content Button */}
+        <button
+          onClick={() => navigate('/shop/content')}
+          className={`fixed left-0 top-[86%] -translate-y-1/2 font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all border group ${
+            location.pathname === '/shop/content'
+              ? 'bg-pink-500 hover:bg-pink-400 shadow-[0_0_20px_rgba(236,72,153,0.5)] border-pink-400/60'
+              : 'bg-pink-800 hover:bg-pink-700 shadow-[0_0_20px_rgba(236,72,153,0.2)] border-pink-400/20'
+          } text-white`}
+        >
+          <Sparkles className="w-4 h-4 group-hover:scale-110 transition-transform" />
+          <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Content</span>
+        </button>
+
         {/* Floating E-Com Matrix Button */}
         <button
           onClick={() => navigate('/shop/matrix')}
-          className="fixed left-0 top-[88%] -translate-y-1/2 bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-indigo-400/30 group"
+          className="fixed left-0 top-[93%] -translate-y-1/2 bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-indigo-400/30 group"
         >
           <Cpu className="w-4 h-4 group-hover:scale-110 transition-transform" />
           <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Matrix</span>
@@ -90,14 +116,14 @@ export default function Layout() {
         {/* Floating Integrations Button */}
         <button
           onClick={() => navigate('/shop/integrations')}
-          className={`fixed left-0 top-[96%] -translate-y-1/2 font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all border group ${
+          className={`fixed left-0 top-[99%] -translate-y-1/2 font-bold py-4 px-1 rounded-r-lg flex flex-col items-center gap-2 z-50 transition-all border group ${
             location.pathname === '/shop/integrations'
               ? 'bg-rose-500 hover:bg-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.5)] border-rose-400/60'
               : 'bg-rose-700 hover:bg-rose-600 shadow-[0_0_20px_rgba(244,63,94,0.3)] border-rose-400/30'
           } text-white`}
         >
           <Plug className="w-4 h-4 group-hover:scale-110 transition-transform" />
-          <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Integrations</span>
+          <span className="[writing-mode:vertical-rl] text-[10px] uppercase tracking-widest">Connect</span>
         </button>
 
         <Outlet />

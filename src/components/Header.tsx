@@ -1,4 +1,4 @@
-import { Activity, Clock, Network, LayoutDashboard, History, Bot, ShoppingCart, Package, TrendingUp, BarChart2, Plug, Zap } from 'lucide-react';
+import { Activity, Clock, Network, LayoutDashboard, History, Bot, ShoppingCart, Package, TrendingUp, BarChart2, Plug, Zap, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -18,12 +18,14 @@ export default function Header() {
   ];
 
   const shopNav = [
-    { name: 'Brand',        path: '/shop/brand',         icon: Zap          },
-    { name: 'Shop',         path: '/shop',               icon: ShoppingCart },
-    { name: 'Products',     path: '/shop/products',      icon: Package      },
-    { name: 'Orders',       path: '/shop/orders',        icon: BarChart2    },
-    { name: 'Revenue',      path: '/shop/revenue',       icon: TrendingUp   },
-    { name: 'Integrations', path: '/shop/integrations',  icon: Plug         },
+    { name: 'Brand',      path: '/shop/brand',        icon: Zap          },
+    { name: 'Shop',       path: '/shop',              icon: ShoppingCart },
+    { name: 'Products',   path: '/shop/products',     icon: Package      },
+    { name: 'Orders',     path: '/shop/orders',       icon: BarChart2    },
+    { name: 'Revenue',    path: '/shop/revenue',      icon: TrendingUp   },
+    { name: 'AutoPilot',  path: '/shop/autopilot',    icon: Bot          },
+    { name: 'Content',    path: '/shop/content',      icon: Sparkles     },
+    { name: 'Connect',    path: '/shop/integrations', icon: Plug         },
   ];
 
   return (

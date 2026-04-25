@@ -19,6 +19,7 @@ import {
 } from "./src/lib/integrations/supplier.js";
 import { registerAgentIdentity } from "./src/lib/agents/onchain.js";
 import { initDb, query } from "./src/lib/db.js";
+import { jobs, automationLog, runJob, startScheduler } from "./src/lib/automation/scheduler.js";
 
 dotenv.config();
 
@@ -413,6 +414,38 @@ ecomRouter.get("/stats", async (_req, res) => {
 });
 
 // ─────────────────────────────────────────────
+// AUTOPILOT ROUTES
+// ─────────────────────────────────────────────
+
+// List all jobs
+ecomRouter.get("/autopilot/jobs", (_req, res) => {
+  res.json({ success: true, jobs: Object.values(jobs) });
+});
+
+// Get automation log
+ecomRouter.get("/autopilot/log", (_req, res) => {
+  res.json({ success: true, log: automationLog.slice(0, 80) });
+});
+
+// Manually trigger a job
+ecomRouter.post("/autopilot/run/:jobId", async (req, res) => {
+  const { jobId } = req.params;
+  const result = await runJob(jobId);
+  res.json(result);
+});
+
+// Toggle job enabled/disabled
+ecomRouter.post("/autopilot/toggle/:jobId", (req, res) => {
+  const { jobId } = req.params;
+  const { enabled } = req.body;
+  const job = jobs[jobId];
+  if (!job) return res.status(404).json({ success: false, error: 'Unknown job' });
+  job.enabled = enabled;
+  addLogToUI(`[AutoPilot] Job "${job.name}" ${enabled ? 'enabled' : 'disabled'}`);
+  res.json({ success: true, job });
+});
+
+// ─────────────────────────────────────────────
 // SHOPIFY INTEGRATION ROUTES
 // ─────────────────────────────────────────────
 const shopifyRouter = express.Router();
@@ -640,6 +673,7 @@ app.use("/api", apiRouter);
 async function setupAndStart() {
   console.log("--- Initializing ATLAS Backend ---");
   await initDb();
+  startScheduler();
   registerAgentIdentity().catch(err => console.error("ERC-8004 Registration Failed:", err.message));
 
   if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {

@@ -11,6 +11,8 @@ import Revenue from './pages/Revenue';
 import EcomMatrix from './pages/EcomMatrix';
 import Integrations from './pages/Integrations';
 import Brand from './pages/Brand';
+import AutoPilot from './pages/AutoPilot';
+import ContentStudio from './pages/ContentStudio';
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
           <Route path="shop/matrix" element={<EcomMatrix />} />
           <Route path="shop/integrations" element={<Integrations />} />
           <Route path="shop/brand" element={<Brand />} />
+          <Route path="shop/autopilot" element={<AutoPilot />} />
+          <Route path="shop/content" element={<ContentStudio />} />
         </Route>
       </Routes>
     </BrowserRouter>
